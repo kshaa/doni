@@ -1,0 +1,24 @@
+// Digital ocean token
+variable "do_token" { default = "digitaloceantoken" }
+
+// Infrastructure region
+variable "region" { default = "lon1" }
+
+// Concourse droplet size
+variable "droplet_size" { default = "s-1vcpu-1gb" }
+
+// Persistent volume size (gb)
+variable "volume_size" { default = 15 }
+
+// Cloud init variables
+variable "source" { default = "https://github.com/kshaa/doni" }
+variable "admin_mail" { default = "ownermail@gmail.com" }
+variable "mail_user" { default = "loggermail@gmail.com" }
+variable "mail_pass" { default = "loggermailpassword" }
+
+// Concourse droplet domain setup
+variable "domain_exists" { default = 1 }
+variable "domain_name" { default = "example.com" }
+
+// Infrastructure code tends to be re-copied, so some variable for custom naming helps
+variable "project_code" { default = "doni" }

@@ -1,0 +1,67 @@
+#!/bin/bash
+help() {
+    cat << EOF
+
+# Usage
+./this-script help
+
+# Commands
+help - Print this help message
+initialise - terragrunt apply - (re)init infrastructure
+reinitialise - destroy and init the droplet - for testing cloud-init or whatever
+hibernate - terragrunt destroy *all but persistent storage*
+die - terragrunt destroy *all*
+ping - pong
+
+EOF
+}
+
+initialise() {
+    echo "Applying infrastructure"
+    echo
+
+    terragrunt apply
+}
+
+reinitialise() {
+    echo "Destroying droplet"
+    echo
+
+    terragrunt destroy -target digitalocean_droplet.concourse_droplet
+
+    echo "Initialising droplet"
+    echo
+
+    terragrunt apply
+}
+
+hibernate() {
+    echo "Destroying everything but the persistent volume"
+    echo
+
+    terragrunt destroy -target digitalocean_droplet.concourse_droplet -target digitalocean_floating_ip.concourse_droplet_ip
+}
+
+die() {
+    terragrunt destroy
+}
+
+ping() {
+    echo "pong"
+}
+
+# No arguments handle
+if [[ $# -eq 0 ]]
+then
+    help
+    exit 0
+fi
+
+# If given parameter isn't a defined function handle
+if ! [[ "$1" =~ ^(help|initialise|reinitialise|hibernate|die|ping)$ ]]
+then
+    echo "Sorrjan, but command '$1' not found."
+    help
+else
+    eval $1
+fi

@@ -1,0 +1,12 @@
+#cloud-config
+
+write_files:
+  - path: /root/init-vm
+    permissions: '0755'
+    content: |
+      ${init-script}
+      
+runcmd:
+  - [ /root/init-vm, ${source}, ${mail_user}, ${mail_pass}, ${deploy_id}, ${project_code}, ${admin_mail} ]
+
+output: { all: "| tee -a /var/log/cloud-init.log" }

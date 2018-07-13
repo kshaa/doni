@@ -1,0 +1,4 @@
+# Sensitive info here, required for any functionality, but not saved in repo
+terraform.tfvars
+id_rsa.pub
+variable.tf
