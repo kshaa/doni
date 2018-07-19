@@ -15,9 +15,7 @@ resource "digitalocean_droplet" "droplet" {
   name   = "${var.project_code}-london"
   region = "${var.region}"
   size   = "${var.droplet_size}"
-  # ALREADY CREATED IN DO BY HAND on different project
-  ssh_keys = ["d7:13:0f:be:e5:f8:ea:e8:e9:40:26:2d:73:4c:49:3d"]
-  // ssh_keys = ["${digitalocean_ssh_key.access_key.fingerprint}"]
+  ssh_keys = ["${digitalocean_ssh_key.access_key.fingerprint}"]
 
   user_data = "${data.template_file.cloud_init.rendered}"
 
@@ -28,11 +26,10 @@ resource "digitalocean_droplet" "droplet" {
 }
 
 # Access key
-# ALREADY CREATED IN DO BY HAND on different project
-// resource "digitalocean_ssh_key" "access_key" {
-//   name       = "SSH Access key"
-//   public_key = "${file("${path.module}/id_rsa.pub")}"
-// }
+resource "digitalocean_ssh_key" "access_key" {
+  name       = "SSH Access key"
+  public_key = "${file("${path.module}/id_rsa.pub")}"
+}
 
 # Floating Ip
 resource "digitalocean_floating_ip" "droplet_ip" {
