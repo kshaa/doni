@@ -2,3 +2,4 @@
 terraform.tfvars
 id_rsa.pub
 variable.tf
+init-cloud/deploy-id

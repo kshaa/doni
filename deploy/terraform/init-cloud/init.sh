@@ -10,6 +10,7 @@ PROJECT_CODE=$5
 ADMIN_MAIL=$6
 
 # Mail setup
+yes | apt-get update
 yes | apt-get install ssmtp
 cat >/etc/ssmtp/ssmtp.conf <<EOL
 mailhub=smtp.gmail.com:587
@@ -49,4 +50,4 @@ LOG_MAIL+="#### Full cloud init log\n"
 LOG_MAIL+="$(/var/log/cloud-init.log)\n"
 LOG_MAIL+="\n"
 
-echo -n "$LOG_MAIL" | ssmtp -v krisjanis.veinbahs@gmail.com
+echo -n "$LOG_MAIL" | ssmtp -v "$ADMIN_MAIL"

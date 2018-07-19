@@ -7,9 +7,6 @@ variable "region" { default = "lon1" }
 // Concourse droplet size
 variable "droplet_size" { default = "s-1vcpu-1gb" }
 
-// Persistent volume size (gb)
-variable "volume_size" { default = 15 }
-
 // Cloud init variables
 variable "source" { default = "https://github.com/kshaa/doni" }
 variable "admin_mail" { default = "ownermail@gmail.com" }

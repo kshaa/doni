@@ -15,10 +15,11 @@ resource "digitalocean_droplet" "droplet" {
   name   = "${var.project_code}-london"
   region = "${var.region}"
   size   = "${var.droplet_size}"
-  ssh_keys = ["${digitalocean_ssh_key.access_key.fingerprint}"]
+  # ALREADY CREATED IN DO BY HAND on different project
+  ssh_keys = ["d7:13:0f:be:e5:f8:ea:e8:e9:40:26:2d:73:4c:49:3d"]
+  // ssh_keys = ["${digitalocean_ssh_key.access_key.fingerprint}"]
 
   user_data = "${data.template_file.cloud_init.rendered}"
-  volume_ids = ["${digitalocean_volume.concourse_volume.id}"]
 
   # Droplet itself is in a private network
   # See the "Floating IP" below for public access
@@ -26,20 +27,12 @@ resource "digitalocean_droplet" "droplet" {
   private_networking = true
 }
 
-# Persistent volume
-resource "digitalocean_volume" "concourse_volume" {
-  region      = "${var.region}"
-  # This name is hardcoded in chef recipes
-  name        = "persist" 
-  size        = "${var.volume_size}"
-  description = "persistent volume (db, docker images, etc.)"
-}
-
 # Access key
-resource "digitalocean_ssh_key" "access_key" {
-  name       = "SSH Access key"
-  public_key = "${file("${path.module}/id_rsa.pub")}"
-}
+# ALREADY CREATED IN DO BY HAND on different project
+// resource "digitalocean_ssh_key" "access_key" {
+//   name       = "SSH Access key"
+//   public_key = "${file("${path.module}/id_rsa.pub")}"
+// }
 
 # Floating Ip
 resource "digitalocean_floating_ip" "droplet_ip" {
@@ -57,26 +50,40 @@ resource "digitalocean_domain" "droplet_domain" {
 }
 
 # Initialisation script
+resource "null_resource" "deploy_id_generator" {
+  triggers {
+    always_new_id = "${uuid()}"
+  }
+
+  # Generate deploy id by commit hash or date
+  provisioner "local-exec" {
+    # Requires bash to be installed
+    command = "${path.module}/init-cloud/deploy-id.sh"
+    interpreter = ["bash", "-e"]
+  }
+}
+
+# Read deploy id file
+data "local_file" "deploy_id_file" {
+  filename = "${path.module}/init-cloud/deploy-id"
+  depends_on = ["null_resource.deploy_id_generator"]
+}
+
 data "template_file" "cloud_init" {
-  template = "${file("${path.module}/init-cloud/cloud-init-chef-bootstrap.yaml")}"
+  template = "${file("${path.module}/init-cloud/cloud-init.yaml")}"
 
   vars {
     source = "${var.source}"
     mail_user = "${var.mail_user}"
     mail_pass = "${var.mail_pass}"
     project_code = "${var.project_code}"
-    deploy_id = "${file("${path.module}/init-cloud/deploy_id")}"
+    deploy_id = "${data.local_file.deploy_id_file.content}"
+    admin_mail = "${var.admin_mail}"
 
     # This injects the secrets.env file with indentation of six spaces, because
     # in the cloud init, the yaml syntax there requires an indentation
     # see ./init-cloud/cloud-init.yaml :: ${init-script}
-    secrets = "${replace(file("${path.module}/init-cloud/init-script.sh"), "/(?m)^/", "      ")}"
-  }
-}
-
-resource "null_resource" "deploy_id_generate" {
-  provisioner "local-exec" {
-    command = "echo `[ $(git rev-parse) ] && echo \"C$(git rev-parse --short HEAD)\" || echo \"D$(date +%s)\"` > ${path.module}/init-cloud/deploy_id"
+    init_script = "${replace(file("${path.module}/init-cloud/init.sh"), "/(?m)^/", "      ")}"
   }
 }
 
